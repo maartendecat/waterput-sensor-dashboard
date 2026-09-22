@@ -24,16 +24,19 @@ services:
       TZ: Europe/Brussels
       DASHBOARD_URL: http://dashboard:3000
       INGEST_TOKEN: ${INGEST_TOKEN:?zet INGEST_TOKEN in .env}
+      # De naam binnen de container ligt vast door de devices-mapping hieronder
+      # en hoort dus niet uit .env te komen.
       MODBUS_PORT: /dev/ttyUSB0
-      MODBUS_SLAVE_ID: 1
-      MODBUS_REGISTER: 256
-      POLL_INTERVAL_SECONDS: 300
-      SENSOR_MIN_MM: 200
-      SENSOR_MAX_MM: 5000
+      MODBUS_SLAVE_ID: ${MODBUS_SLAVE_ID:-1}
+      MODBUS_REGISTER: ${MODBUS_REGISTER:-256}
+      POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS:-300}
+      SENSOR_MIN_MM: ${SENSOR_MIN_MM:-200}
+      SENSOR_MAX_MM: ${SENSOR_MAX_MM:-5000}
     devices:
       # Links het stabiele by-id-pad op de host, rechts de simpele naam in de
-      # container. Zoek het exacte pad met: ls -l /dev/serial/by-id/
-      - /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_XXXX-if00-port0:/dev/ttyUSB0
+      # container. Het pad verschilt per adapter en staat daarom in .env, niet
+      # in dit bestand: zo overleeft je instelling een git pull.
+      - ${MODBUS_DEVICE:?zet MODBUS_DEVICE in .env (zie ls -l /dev/serial/by-id/)}:/dev/ttyUSB0
 
 volumes:
   waterput-data:

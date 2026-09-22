@@ -86,13 +86,21 @@ Zet een echt token in `.env`:
 echo "INGEST_TOKEN=$(openssl rand -hex 32)" > .env
 ```
 
-Zoek het stabiele pad van de USB-adapter op en zet het in `docker-compose.yml`
-bij `devices:` — het linkerdeel is het pad op de host, het rechterdeel de naam
-binnen de container:
+Zoek het stabiele pad van de USB-adapter op en zet het als `MODBUS_DEVICE` in
+`.env` — niet in `docker-compose.yml`, want dat bestand staat onder
+versiebeheer en je instelling zou elke `git pull` overleven moeten:
 
 ```bash
 ls -l /dev/serial/by-id/
 ```
+
+`docker-compose.yml` leest verder `MODBUS_SLAVE_ID`, `MODBUS_REGISTER`,
+`POLL_INTERVAL_SECONDS`, `SENSOR_MIN_MM` en `SENSOR_MAX_MM` uit `.env`. Die zijn
+allemaal optioneel: laat je ze weg, dan geldt de waarde uit `.env.example`.
+`INGEST_TOKEN` en `MODBUS_DEVICE` zijn dat niet — ontbreken ze, dan weigert
+Compose te starten met een melding die zegt wat er mist.
+
+Let op dat een variabele die al in je shell staat, voorrang heeft op `.env`.
 
 Dan:
 
