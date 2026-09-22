@@ -68,14 +68,26 @@ export function VerloopKaart({
       <section className="kaart">
         <div className={`kaart-kop${toonTabel ? "" : " zonder-marge"}`}>
           <h2 className="kaart-titel">Metingen in detail</h2>
-          <button
-            type="button"
-            className="knop-subtiel"
-            aria-expanded={toonTabel}
-            onClick={() => setToonTabel((v) => !v)}
-          >
-            {toonTabel ? "Verbergen" : "Tonen"}
-          </button>
+          <div className="knoppen">
+            {/* Een gewone link, geen fetch met een blob: de server zet de
+                bestandsnaam en de browser doet de rest. Werkt ook wanneer de
+                tabel dichtgeklapt is. */}
+            <a
+              className="knop-subtiel"
+              href={`/api/export?periode=${periode}`}
+              download
+            >
+              CSV downloaden
+            </a>
+            <button
+              type="button"
+              className="knop-subtiel"
+              aria-expanded={toonTabel}
+              onClick={() => setToonTabel((v) => !v)}
+            >
+              {toonTabel ? "Verbergen" : "Tonen"}
+            </button>
+          </div>
         </div>
 
         {toonTabel && (

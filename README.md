@@ -146,6 +146,24 @@ MODBUS_PORT=/dev/ttyUSB0 DASHBOARD_URL=http://localhost:3000 npm run build && np
 | `/api/measurements` | POST | Metingen aanleveren. Vereist `Authorization: Bearer <INGEST_TOKEN>` zodra dat token gezet is. |
 | `/api/history?periode=24u\|7d\|30d\|12m` | GET | Verloop, samengevat per bucket. |
 | `/api/config` | GET / PUT | De kalibratie lezen en schrijven. |
+| `/api/export?periode=...` | GET | Dezelfde reeks als CSV, met `Content-Disposition` zodat de browser ze bewaart. |
+
+### CSV
+
+De export levert wat de detailtabel toont: de samengevatte reeks voor de
+gekozen periode, dus daggemiddelden bij 12 maanden en geen ruwe metingen.
+
+Scheidingsteken is een puntkomma, decimalen een komma, en het bestand begint
+met een UTF-8 BOM — dat is de combinatie waarbij dubbelklikken in Excel met
+Belgische regio-instellingen meteen goede kolommen geeft. Een RFC4180-bestand
+met punt-decimalen komt daar in één kolom binnen.
+
+Er staan twee tijdkolommen in: `unix_ts` (eenduidig) en `tijdstip` (lokale tijd,
+door Excel herkend als tijdstip). Bij de jaarweergave staat daar `02:00`, want
+dagbuckets liggen op UTC-middernacht — zie hierboven.
+
+Een mislukte meting levert een regel met lege waardevelden, zodat een gat in de
+reeks ook in een spreadsheet een gat blijft.
 
 ## Omgevingsvariabelen
 

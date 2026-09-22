@@ -199,6 +199,10 @@ html, body {
 
 .knop-subtiel:hover { background: var(--page); color: var(--text-primary); }
 
+a.knop-subtiel { text-decoration: none; display: inline-block; }
+
+.knoppen { display: flex; gap: 8px; flex-wrap: wrap; }
+
 /* Dichtgeklapt is de kop het enige in de kaart — dan geen loze witruimte. */
 .kaart-kop.zonder-marge { margin-bottom: 0; }
 
