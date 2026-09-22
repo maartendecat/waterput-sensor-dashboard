@@ -121,14 +121,6 @@ export default function Hoofdpagina() {
 
             <div className="tegels">
               <div>
-                <p className="tegel-label">Afstand tot water</p>
-                <p className="tegel-waarde">
-                  {laatsteGoed?.afstandMm != null
-                    ? `${formatteerGetal(laatsteGoed.afstandMm)} mm`
-                    : "—"}
-                </p>
-              </div>
-              <div>
                 <p className="tegel-label">Laatste meting</p>
                 <p className="tegel-waarde">
                   {laatste ? relatieveTijd(laatste.ts, nu) : "—"}

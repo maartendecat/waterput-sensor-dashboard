@@ -186,25 +186,26 @@ html, body {
 
 /* ---- Tabelweergave ---- */
 
-.schakelaar {
+.knop-subtiel {
   font: inherit;
   font-size: 13px;
-  background: none;
-  border: none;
+  padding: 6px 12px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
-  padding: 8px 0 0;
-  text-decoration: underline;
-  text-underline-offset: 3px;
 }
 
-.schakelaar:hover { color: var(--text-primary); }
+.knop-subtiel:hover { background: var(--page); color: var(--text-primary); }
+
+/* Dichtgeklapt is de kop het enige in de kaart — dan geen loze witruimte. */
+.kaart-kop.zonder-marge { margin-bottom: 0; }
 
 table.verloop {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
-  margin-top: 12px;
   font-variant-numeric: tabular-nums;
 }
 

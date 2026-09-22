@@ -42,73 +42,80 @@ export function VerloopKaart({
   }
 
   return (
-    <section className="kaart">
-      <div className="kaart-kop">
-        <h2 className="kaart-titel">Vulniveau in procent</h2>
-        <div className="periodes" role="group" aria-label="Periode">
-          {(Object.keys(PERIODES) as PeriodeSleutel[]).map((sleutel) => (
-            <button
-              key={sleutel}
-              type="button"
-              aria-pressed={sleutel === periode}
-              onClick={() => kies(sleutel)}
-            >
-              {PERIODES[sleutel].label}
-            </button>
-          ))}
+    <>
+      <section className="kaart">
+        <div className="kaart-kop">
+          <h2 className="kaart-titel">Vulniveau in procent</h2>
+          <div className="periodes" role="group" aria-label="Periode">
+            {(Object.keys(PERIODES) as PeriodeSleutel[]).map((sleutel) => (
+              <button
+                key={sleutel}
+                type="button"
+                aria-pressed={sleutel === periode}
+                onClick={() => kies(sleutel)}
+              >
+                {PERIODES[sleutel].label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {fout && <p className="melding ernstig">{fout}</p>}
+        {fout && <p className="melding ernstig">{fout}</p>}
 
-      <Grafiek punten={punten} periode={periode} vervaagd={laadt} />
+        <Grafiek punten={punten} periode={periode} vervaagd={laadt} />
+      </section>
 
-      <button
-        type="button"
-        className="schakelaar"
-        aria-expanded={toonTabel}
-        onClick={() => setToonTabel((v) => !v)}
-      >
-        {toonTabel ? "Tabel verbergen" : "Tabel tonen"}
-      </button>
+      <section className="kaart">
+        <div className={`kaart-kop${toonTabel ? "" : " zonder-marge"}`}>
+          <h2 className="kaart-titel">Metingen in detail</h2>
+          <button
+            type="button"
+            className="knop-subtiel"
+            aria-expanded={toonTabel}
+            onClick={() => setToonTabel((v) => !v)}
+          >
+            {toonTabel ? "Verbergen" : "Tonen"}
+          </button>
+        </div>
 
-      {toonTabel && (
-        <div className="tabel-omhulsel">
-          <table className="verloop">
-            <caption className="visueel-verborgen">
-              Metingen over de laatste {PERIODES[periode].label}
-            </caption>
-            <thead>
-              <tr>
-                <th scope="col">Tijdstip</th>
-                <th scope="col">Vulniveau</th>
-                <th scope="col">Inhoud</th>
-                <th scope="col">Afstand</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[...punten].reverse().map((punt) => (
-                <tr key={punt.ts}>
-                  <td>{formatteerBucket(punt.ts, periode)}</td>
-                  <td>
-                    {punt.percentage === null
-                      ? "—"
-                      : `${formatteerGetal(punt.percentage)} %`}
-                  </td>
-                  <td>
-                    {punt.liter === null ? "—" : `${formatteerGetal(punt.liter)} l`}
-                  </td>
-                  <td>
-                    {punt.afstandMm === null
-                      ? "geen meting"
-                      : `${formatteerGetal(punt.afstandMm)} mm`}
-                  </td>
+        {toonTabel && (
+          <div className="tabel-omhulsel">
+            <table className="verloop">
+              <caption className="visueel-verborgen">
+                Metingen over de laatste {PERIODES[periode].label}
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Tijdstip</th>
+                  <th scope="col">Vulniveau</th>
+                  <th scope="col">Inhoud</th>
+                  <th scope="col">Afstand tot water</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </section>
+              </thead>
+              <tbody>
+                {[...punten].reverse().map((punt) => (
+                  <tr key={punt.ts}>
+                    <td>{formatteerBucket(punt.ts, periode)}</td>
+                    <td>
+                      {punt.percentage === null
+                        ? "—"
+                        : `${formatteerGetal(punt.percentage)} %`}
+                    </td>
+                    <td>
+                      {punt.liter === null ? "—" : `${formatteerGetal(punt.liter)} l`}
+                    </td>
+                    <td>
+                      {punt.afstandMm === null
+                        ? "geen meting"
+                        : `${formatteerGetal(punt.afstandMm)} mm`}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </>
   );
 }
