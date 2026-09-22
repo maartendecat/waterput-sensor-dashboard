@@ -1,0 +1,106 @@
+name: Images bouwen
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  wijzigingen:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      dashboard: ${{ steps.filter.outputs.dashboard }}
+      poller: ${{ steps.filter.outputs.poller }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            dashboard:
+              - 'apps/dashboard/**'
+              - '.github/workflows/build.yml'
+            poller:
+              - 'apps/poller/**'
+              - '.github/workflows/build.yml'
+
+  bouwen:
+    needs: wijzigingen
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: dashboard
+            image: waterput-dashboard
+          - app: poller
+            image: waterput-poller
+    steps:
+      # Een tag of een handmatige start bouwt altijd allebei de images; bij een
+      # gewone push telt enkel wat er veranderd is.
+      - name: Bepaal of deze app gebouwd moet worden
+        id: nodig
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] \
+             || [ "${{ startsWith(github.ref, 'refs/tags/') }}" = "true" ] \
+             || [ "${{ needs.wijzigingen.outputs[matrix.app] }}" = "true" ]; then
+            echo "bouwen=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "bouwen=false" >> "$GITHUB_OUTPUT"
+            echo "Geen wijzigingen in apps/${{ matrix.app }}, wordt overgeslagen."
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.nodig.outputs.bouwen == 'true'
+
+      - uses: docker/setup-qemu-action@v3
+        if: steps.nodig.outputs.bouwen == 'true'
+
+      - uses: docker/setup-buildx-action@v3
+        if: steps.nodig.outputs.bouwen == 'true'
+
+      - name: Aanmelden bij ghcr.io
+        if: steps.nodig.outputs.bouwen == 'true' && github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tags en labels bepalen
+        if: steps.nodig.outputs.bouwen == 'true'
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,format=short
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Bouwen en pushen
+        if: steps.nodig.outputs.bouwen == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: apps/${{ matrix.app }}
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.app }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.app }}

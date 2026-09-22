@@ -1,0 +1,37 @@
+# Draait op de Raspberry Pi. Zet eerst een .env naast dit bestand met daarin
+# minstens INGEST_TOKEN (zie .env.example).
+services:
+  dashboard:
+    image: ghcr.io/maartendecat/waterput-dashboard:latest
+    container_name: waterput-dashboard
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      TZ: Europe/Brussels
+      INGEST_TOKEN: ${INGEST_TOKEN:?zet INGEST_TOKEN in .env}
+      WATERPUT_DB_PATH: /data/waterput.db
+    volumes:
+      - waterput-data:/data
+
+  poller:
+    image: ghcr.io/maartendecat/waterput-poller:latest
+    container_name: waterput-poller
+    restart: unless-stopped
+    depends_on:
+      - dashboard
+    environment:
+      TZ: Europe/Brussels
+      DASHBOARD_URL: http://dashboard:3000
+      INGEST_TOKEN: ${INGEST_TOKEN:?zet INGEST_TOKEN in .env}
+      MODBUS_PORT: /dev/ttyUSB0
+      MODBUS_SLAVE_ID: 1
+      MODBUS_REGISTER: 256
+      POLL_INTERVAL_SECONDS: 300
+    devices:
+      # Links het stabiele by-id-pad op de host, rechts de simpele naam in de
+      # container. Zoek het exacte pad met: ls -l /dev/serial/by-id/
+      - /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_XXXX-if00-port0:/dev/ttyUSB0
+
+volumes:
+  waterput-data:
