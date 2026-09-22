@@ -188,7 +188,7 @@ reeks ook in een spreadsheet een gat blijft.
 | `DASHBOARD_URL` | `http://dashboard:3000` | Waar de metingen heen gaan |
 | `INGEST_TOKEN` | *(leeg)* | Moet overeenkomen met dat van het dashboard |
 | `BUFFER_MAX` | `2016` | Metingen die bewaard blijven als het dashboard weg is (een week) |
-| `SENSOR_MIN_MM` | `250` | Ondergrens; daaronder ligt de dode zone |
+| `SENSOR_MIN_MM` | `200` | Ondergrens van de sensor; daaronder komt geen echo terug |
 | `SENSOR_MAX_MM` | `5000` | Bovengrens; daarboven haalt de echo niets |
 
 ## Wat de poller logt als er iets misgaat
@@ -210,9 +210,13 @@ wanneer. Zodra het weer lukt komt er een herstelregel met de duur van de
 storing. Zo blijft `docker compose logs poller` leesbaar bij een storing die
 een nacht duurt.
 
-**`bereik` verdient aparte aandacht.** De sensor kan een keurig Modbus-antwoord
-geven met een onmogelijke waarde — `0 mm` betekent bij een ultrasone sensor
-meestal dat de echo niet is teruggekomen. Zonder controle rekent dat door als
+**`bereik` verdient aparte aandacht.** De sensor meet van 200 mm tot 5 m en kan
+daarbuiten een keurig Modbus-antwoord geven met een onmogelijke waarde — `0 mm`
+betekent bij een ultrasone sensor meestal dat de echo niet is teruggekomen.
+
+Die 200 mm is de sensorspecificatie en niet de montagemarge van 25 cm uit
+PROJECT-DESIGN.md: die laatste zegt hoe hoog je ophangt, deze zegt welk antwoord
+onmogelijk is. Zonder controle rekent dat door als
 een *volle* put, want een kleine afstand is veel water. Zo'n antwoord wordt
 daarom als storing bewaard, met de ruwe waarde in de foutmelding, en niet als
 meting.

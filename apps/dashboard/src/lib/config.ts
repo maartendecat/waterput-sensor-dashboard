@@ -70,9 +70,14 @@ export function valideerConfiguratie(invoer: Partial<Configuratie>): string[] {
   if (afstandLeegMm! > 5000) {
     fouten.push("De sensor meet tot 5000 mm; een grotere afstand kan hij niet zien.");
   }
-  if (afstandVolMm! < 250) {
+  // 200 mm is de ondergrens van de sensor zelf: daarbinnen komt er geen
+  // bruikbare echo terug. De montagemarge van 25 cm uit PROJECT-DESIGN.md is
+  // ruimer, maar dat is een advies over ophangen en geen reden om een
+  // kalibratie te weigeren die de sensor wel degelijk kan meten.
+  if (afstandVolMm! < 200) {
     fouten.push(
-      "Binnen 250 mm van de sensor ligt de dode zone; een volle put moet daar onder blijven.",
+      "De sensor meet pas vanaf 200 mm; een volle put die dichterbij komt levert " +
+        "geen meting op. Hang de sensor hoger — mik op minstens 250 mm marge.",
     );
   }
 

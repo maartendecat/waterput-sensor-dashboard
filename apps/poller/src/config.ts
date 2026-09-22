@@ -24,11 +24,13 @@ export const config = {
   timeoutMs: getal("MODBUS_TIMEOUT_MS", 2000),
 
   /**
-   * Grenzen waarbinnen een meting geloofwaardig is. De dode zone van deze
-   * sensor is 0-25 cm en het bereik gaat tot 5 m; daarbuiten is een antwoord
-   * geen meting maar een storing die zich als meting voordoet.
+   * Grenzen waarbinnen een meting fysiek mogelijk is: de sensor meet vanaf
+   * 200 mm tot 5 m. Dit is de sensorspecificatie, niet de montagemarge van
+   * 25 cm uit PROJECT-DESIGN.md -- die laatste zegt hoe hoog je de sensor
+   * ophangt, deze zegt welk antwoord onmogelijk is. Een antwoord daarbuiten
+   * is geen meting maar een storing die zich als meting voordoet.
    */
-  minAfstandMm: getal("SENSOR_MIN_MM", 250),
+  minAfstandMm: getal("SENSOR_MIN_MM", 200),
   maxAfstandMm: getal("SENSOR_MAX_MM", 5000),
   intervalSeconden: getal("POLL_INTERVAL_SECONDS", 300),
 
