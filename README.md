@@ -188,6 +188,34 @@ reeks ook in een spreadsheet een gat blijft.
 | `DASHBOARD_URL` | `http://dashboard:3000` | Waar de metingen heen gaan |
 | `INGEST_TOKEN` | *(leeg)* | Moet overeenkomen met dat van het dashboard |
 | `BUFFER_MAX` | `2016` | Metingen die bewaard blijven als het dashboard weg is (een week) |
+| `SENSOR_MIN_MM` | `250` | Ondergrens; daaronder ligt de dode zone |
+| `SENSOR_MAX_MM` | `5000` | Bovengrens; daarboven haalt de echo niets |
+
+## Wat de poller logt als er iets misgaat
+
+Een mislukte uitlezing zegt op zich weinig. De poller classificeert de fout en
+zet er de raad bij die bij die faalmodus hoort:
+
+| Soort | Wat het betekent |
+|---|---|
+| `timeout` | Geen antwoord. Wissel eerst A en B om; controleer daarna 5 V, massa en slave-adres. |
+| `crc` | Antwoord komt beschadigd aan: baudrate, afscherming, of half verwisselde aders. |
+| `modbus-exceptie` | Het toestel leeft en weigert het verzoek — bijna altijd het verkeerde registeradres. |
+| `poort` | De seriële poort is weg. USB-adapter los, of Home Assistant houdt hem nog vast. |
+| `bereik` | Er kwam een getal binnen dat geen meting kan zijn. |
+
+De volledige uitleg verschijnt bij de **eerste** fout van een reeks; daarna
+volgt een compacte regel met hoeveel pogingen op rij mislukt zijn en sinds
+wanneer. Zodra het weer lukt komt er een herstelregel met de duur van de
+storing. Zo blijft `docker compose logs poller` leesbaar bij een storing die
+een nacht duurt.
+
+**`bereik` verdient aparte aandacht.** De sensor kan een keurig Modbus-antwoord
+geven met een onmogelijke waarde — `0 mm` betekent bij een ultrasone sensor
+meestal dat de echo niet is teruggekomen. Zonder controle rekent dat door als
+een *volle* put, want een kleine afstand is veel water. Zo'n antwoord wordt
+daarom als storing bewaard, met de ruwe waarde in de foutmelding, en niet als
+meting.
 
 ## Back-up
 

@@ -28,6 +28,8 @@ services:
       MODBUS_SLAVE_ID: 1
       MODBUS_REGISTER: 256
       POLL_INTERVAL_SECONDS: 300
+      SENSOR_MIN_MM: 250
+      SENSOR_MAX_MM: 5000
     devices:
       # Links het stabiele by-id-pad op de host, rechts de simpele naam in de
       # container. Zoek het exacte pad met: ls -l /dev/serial/by-id/

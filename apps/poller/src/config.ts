@@ -22,6 +22,14 @@ export const config = {
   register: getal("MODBUS_REGISTER", 256),
 
   timeoutMs: getal("MODBUS_TIMEOUT_MS", 2000),
+
+  /**
+   * Grenzen waarbinnen een meting geloofwaardig is. De dode zone van deze
+   * sensor is 0-25 cm en het bereik gaat tot 5 m; daarbuiten is een antwoord
+   * geen meting maar een storing die zich als meting voordoet.
+   */
+  minAfstandMm: getal("SENSOR_MIN_MM", 250),
+  maxAfstandMm: getal("SENSOR_MAX_MM", 5000),
   intervalSeconden: getal("POLL_INTERVAL_SECONDS", 300),
 
   dashboardUrl: (process.env.DASHBOARD_URL ?? "http://dashboard:3000").replace(/\/$/, ""),
