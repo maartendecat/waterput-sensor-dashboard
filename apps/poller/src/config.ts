@@ -42,4 +42,13 @@ export const config = {
    * 2016 stuks is een week aan metingen om de vijf minuten.
    */
   bufferMax: getal("BUFFER_MAX", 2016),
+
+  /**
+   * Ping-URL van een check op Healthchecks.io, bv.
+   * https://hc-ping.com/<uuid>. Leeg betekent geen pings.
+   */
+  healthcheckUrl: (process.env.HEALTHCHECK_URL ?? "").trim().replace(/\/$/, ""),
+
+  /** Na hoeveel mislukte rondes op rij de check op "down" gaat. */
+  healthcheckFoutenVoorAlarm: getal("HEALTHCHECK_FOUTEN_VOOR_ALARM", 6),
 };

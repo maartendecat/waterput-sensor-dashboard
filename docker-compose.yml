@@ -32,6 +32,8 @@ services:
       POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS:-300}
       SENSOR_MIN_MM: ${SENSOR_MIN_MM:-200}
       SENSOR_MAX_MM: ${SENSOR_MAX_MM:-5000}
+      HEALTHCHECK_URL: ${HEALTHCHECK_URL:-}
+      HEALTHCHECK_FOUTEN_VOOR_ALARM: ${HEALTHCHECK_FOUTEN_VOOR_ALARM:-6}
     devices:
       # Links het stabiele by-id-pad op de host, rechts de simpele naam in de
       # container. Het pad verschilt per adapter en staat daarom in .env, niet

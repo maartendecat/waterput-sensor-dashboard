@@ -95,7 +95,8 @@ ls -l /dev/serial/by-id/
 ```
 
 `docker-compose.yml` leest verder `MODBUS_SLAVE_ID`, `MODBUS_REGISTER`,
-`POLL_INTERVAL_SECONDS`, `SENSOR_MIN_MM` en `SENSOR_MAX_MM` uit `.env`. Die zijn
+`POLL_INTERVAL_SECONDS`, `SENSOR_MIN_MM`, `SENSOR_MAX_MM`, `HEALTHCHECK_URL` en
+`HEALTHCHECK_FOUTEN_VOOR_ALARM` uit `.env`. Die zijn
 allemaal optioneel: laat je ze weg, dan geldt de waarde uit `.env.example`.
 `INGEST_TOKEN` en `MODBUS_DEVICE` zijn dat niet — ontbreken ze, dan weigert
 Compose te starten met een melding die zegt wat er mist.
@@ -198,6 +199,8 @@ reeks ook in een spreadsheet een gat blijft.
 | `BUFFER_MAX` | `2016` | Metingen die bewaard blijven als het dashboard weg is (een week) |
 | `SENSOR_MIN_MM` | `200` | Ondergrens van de sensor; daaronder komt geen echo terug |
 | `SENSOR_MAX_MM` | `5000` | Bovengrens; daarboven haalt de echo niets |
+| `HEALTHCHECK_URL` | *(leeg)* | Ping-URL van een check op Healthchecks.io. Leeg betekent geen pings. |
+| `HEALTHCHECK_FOUTEN_VOOR_ALARM` | `6` | Mislukte rondes op rij voor de check op "down" gaat (een half uur) |
 
 ## Wat de poller logt als er iets misgaat
 
@@ -228,6 +231,37 @@ onmogelijk is. Zonder controle rekent dat door als
 een *volle* put, want een kleine afstand is veel water. Zo'n antwoord wordt
 daarom als storing bewaard, met de ruwe waarde in de foutmelding, en niet als
 meting.
+
+## Verwittigd worden bij een storing
+
+De poller pingt [Healthchecks.io](https://healthchecks.io) na elke ronde. Het
+alarm komt van buitenaf: blijven de pings weg, dan verwittigt Healthchecks je.
+Zo valt ook een gecrashte poller, een Pi zonder stroom of een weggevallen
+internetverbinding op — storingen waarbij niets op de Pi zelf nog iets kan
+melden.
+
+Per ronde:
+
+| Toestand | Ping | Gevolg |
+|---|---|---|
+| Meting gelukt en in de database | `<url>` | Check is "up" |
+| Mislukt, minder dan `HEALTHCHECK_FOUTEN_VOOR_ALARM` keer op rij | `<url>/log` | Enkel een regel in het logboek van de check; één fout is ruis |
+| Mislukt, vanaf die drempel | `<url>/fail` | Check gaat "down", met foutsoort, foutmelding en raad in de melding |
+
+Een sensor die werkt achter een onbereikbaar dashboard telt ook als mislukt: de
+vraag is of de meting in de database staat.
+
+Opzetten:
+
+1. Maak op healthchecks.io een check aan met **Period** 5 minuten (gelijk aan
+   `POLL_INTERVAL_SECONDS`) en **Grace** 30 minuten.
+2. Koppel onder *Integrations* het kanaal waarop je verwittigd wilt worden
+   (e-mail, de app, Signal, Telegram, ntfy…).
+3. Zet de ping-URL in `.env` als `HEALTHCHECK_URL` en herstart:
+   `docker compose up -d`.
+
+In de log van de poller verschijnt dan `healthcheck aan`. Is healthchecks.io
+zelf onbereikbaar, dan staat dat één keer in de log en niet bij elke ronde.
 
 ## Back-up
 

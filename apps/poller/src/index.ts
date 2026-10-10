@@ -1,10 +1,12 @@
 import { buitenBereik, diagnoseer, type Diagnose } from "./diagnose";
 import { config } from "./config";
+import { Healthcheck } from "./healthcheck";
 import { Sensor } from "./sensor";
 import { Verzender, type Meting } from "./verzender";
 
 const sensor = new Sensor();
 const verzender = new Verzender();
+const healthcheck = new Healthcheck();
 
 let stoppen = false;
 
@@ -64,6 +66,7 @@ function meldHerstel(afstandMm: number, ts: number): void {
 async function meetEenmaal(): Promise<void> {
   const ts = Math.round(Date.now() / 1000);
   let meting: Meting;
+  let storing: Diagnose | null = null;
 
   try {
     const afstand = await sensor.leesAfstandMm();
@@ -74,6 +77,7 @@ async function meetEenmaal(): Promise<void> {
 
     if (onzin) {
       meldStoring(onzin, ts);
+      storing = onzin;
       meting = { ts, distanceMm: null, error: onzin.bericht };
     } else {
       meldHerstel(afstand, ts);
@@ -83,6 +87,7 @@ async function meetEenmaal(): Promise<void> {
   } catch (fout) {
     const diagnose = diagnoseer(fout);
     meldStoring(diagnose, ts);
+    storing = diagnose;
     meting = { ts, distanceMm: null, error: diagnose.bericht };
 
     // Poort dichtgooien zodat de volgende ronde opnieuw verbindt.
@@ -103,6 +108,21 @@ async function meetEenmaal(): Promise<void> {
     );
   } else if (gelukt && wachtrijVoor > 1) {
     console.log("[poller] dashboard weer bereikbaar, wachtrij leeg");
+  }
+
+  // Gezond is: de meting staat in de database. Een sensor die werkt achter een
+  // onbereikbaar dashboard telt dus ook als storing.
+  if (storing) {
+    await healthcheck.ongezond(
+      `Sensor: ${storing.soort}\n${storing.bericht}\n\n${storing.raad}`,
+    );
+  } else if (!gelukt) {
+    await healthcheck.ongezond(
+      `Dashboard onbereikbaar op ${config.dashboardUrl}; ` +
+        `${verzender.wachtrij} meting(en) wachten in de buffer.`,
+    );
+  } else {
+    await healthcheck.gezond();
   }
 }
 
@@ -141,6 +161,12 @@ console.log(
 
 if (!config.ingestToken) {
   console.warn("[poller] INGEST_TOKEN is niet gezet; de ingest-endpoint staat open.");
+}
+
+if (config.healthcheckUrl) {
+  console.log(
+    `[poller] healthcheck aan, alarm na ${config.healthcheckFoutenVoorAlarm} mislukte rondes op rij`,
+  );
 }
 
 void lus();
