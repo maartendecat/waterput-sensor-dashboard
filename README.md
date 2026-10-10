@@ -74,16 +74,25 @@ de waterhoogte.
 
 ## Draaien op de Pi
 
+**`docker-compose.yml` uit de repo wordt ongewijzigd gedeployed.** Alles wat
+per machine verschilt — het token, het pad van de USB-adapter, de
+Healthchecks-URL, eventuele afwijkende sensorinstellingen — staat in `.env`
+naast dat bestand, en nergens anders. Pas `docker-compose.yml` op de Pi dus
+nooit met de hand aan: zo blijft een update gewoon "nieuwste versie ophalen",
+en kan je eigen instelling niet verloren gaan. Welke variabelen er zijn, staat
+in [`.env.example`](.env.example) en onder
+[Omgevingsvariabelen](#omgevingsvariabelen).
+
 ```bash
-git clone git@github.com:maartendecat/waterput-sensor-dashboard.git
-cd waterput-sensor-dashboard
+git clone git@github.com:maartendecat/waterput-sensor-dashboard.git waterput-sensor
+cd waterput-sensor
 cp .env.example .env
 ```
 
-Zet een echt token in `.env`:
+Vervang het voorbeeldtoken in `.env` door een echt:
 
 ```bash
-echo "INGEST_TOKEN=$(openssl rand -hex 32)" > .env
+sed -i "s/^INGEST_TOKEN=.*/INGEST_TOKEN=$(openssl rand -hex 32)/" .env
 ```
 
 Zoek het stabiele pad van de USB-adapter op en zet het als `MODBUS_DEVICE` in
@@ -111,6 +120,24 @@ docker compose up -d
 
 Het dashboard staat op `http://<ip-van-de-pi>:3000`. Er is geen login: de
 opstelling hoort enkel op het eigen netwerk bereikbaar te zijn.
+
+### Bijwerken
+
+Vanaf je eigen machine:
+
+```bash
+make deploy
+```
+
+Dat doet op de Pi `git pull` (voor een nieuwe `docker-compose.yml`),
+`docker compose pull` (de nieuwste images uit CI) en `docker compose up -d`,
+dat enkel de containers herstart waarvan image of configuratie veranderde.
+Daarna ruimt het oude images op. Het adres van de Pi en de map staan
+bovenaan de `Makefile`; geef ze desnoods per keer mee met
+`make deploy PI=pi@192.168.0.42`.
+
+Komt er een nieuwe variabele bij, dan staat die in `.env.example`. Zet hem in
+`.env` als je hem nodig hebt — de standaardwaarde geldt anders.
 
 ### Home Assistant moet de poort loslaten
 
