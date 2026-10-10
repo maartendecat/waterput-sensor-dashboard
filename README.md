@@ -103,7 +103,7 @@ versiebeheer en je instelling zou elke `git pull` overleven moeten:
 ls -l /dev/serial/by-id/
 ```
 
-`docker-compose.yml` leest verder `MODBUS_SLAVE_ID`, `MODBUS_REGISTER`,
+`docker-compose.yml` leest verder `DASHBOARD_PORT`, `WATERPUT_DATA`, `MODBUS_SLAVE_ID`, `MODBUS_REGISTER`,
 `POLL_INTERVAL_SECONDS`, `SENSOR_MIN_MM`, `SENSOR_MAX_MM`, `HEALTHCHECK_URL` en
 `HEALTHCHECK_FOUTEN_VOOR_ALARM` uit `.env`. Die zijn
 allemaal optioneel: laat je ze weg, dan geldt de waarde uit `.env.example`.
@@ -118,7 +118,8 @@ Dan:
 docker compose up -d
 ```
 
-Het dashboard staat op `http://<ip-van-de-pi>:3000`. Er is geen login: de
+Het dashboard staat op `http://<ip-van-de-pi>:3000`, of op de poort uit
+`DASHBOARD_PORT`. Er is geen login: de
 opstelling hoort enkel op het eigen netwerk bereikbaar te zijn.
 
 ### Bijwerken
@@ -202,6 +203,13 @@ Een mislukte meting levert een regel met lege waardevelden, zodat een gat in de
 reeks ook in een spreadsheet een gat blijft.
 
 ## Omgevingsvariabelen
+
+**Compose** (enkel in `.env`, niet in een container)
+
+| Naam | Standaard | Betekenis |
+|---|---|---|
+| `DASHBOARD_PORT` | `3000` | Poort op de host voor het dashboard |
+| `WATERPUT_DATA` | `waterput-data` | Docker-volume of hostpad (`./data`) voor de database |
 
 **Dashboard**
 
@@ -297,9 +305,12 @@ veilige manier — een kopie met `cp` tijdens een schrijfactie kan een halve
 transactie meenemen:
 
 ```bash
-docker run --rm -v waterput-sensor-dashboard_waterput-data:/data -v "$PWD":/uit \
+docker run --rm --volumes-from waterput-dashboard -v "$PWD":/uit \
   nouchka/sqlite3 /data/waterput.db ".backup '/uit/waterput-backup.db'"
 ```
+
+`--volumes-from` neemt de `/data` van de dashboardcontainer over, dus dit werkt
+ongeacht wat `WATERPUT_DATA` is.
 
 ## CI
 

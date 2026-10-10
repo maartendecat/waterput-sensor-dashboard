@@ -6,13 +6,15 @@ services:
     container_name: waterput-dashboard
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "${DASHBOARD_PORT:-3000}:3000"
     environment:
       TZ: Europe/Brussels
       INGEST_TOKEN: ${INGEST_TOKEN:?zet INGEST_TOKEN in .env}
       WATERPUT_DB_PATH: /data/waterput.db
     volumes:
-      - waterput-data:/data
+      # Standaard een Docker-volume; zet WATERPUT_DATA in .env op een pad
+      # (bv. ./data) om de database als gewone map op de host te bewaren.
+      - ${WATERPUT_DATA:-waterput-data}:/data
 
   poller:
     image: ghcr.io/maartendecat/waterput-poller:latest
